@@ -1,0 +1,1 @@
+# Zabbix_modbus_template
