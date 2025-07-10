@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>7.0</version>
+    <template_groups>
+        <template_group>
+            <uuid>7df96b18c230490a9a0a9e2307226338</uuid>
+            <name>Templates</name>
+        </template_group>
+    </template_groups>
+    <templates>
+        <template>
+            <uuid>7341f0c3decf43f5a2adb24660946c5c</uuid>
+            <template>Modbus monitoring_mp</template>
+            <name>Modbus monitoring_mp</name>
+            <description>mpx-xxx</description>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <items>
+                <item>
+                    <uuid>6c0c54f069e84b3db2ad1dc9fc81ea18</uuid>
+                    <name>Drive Fault State Active</name>
+                    <type>DEPENDENT</type>
+                    <key>drive.fault.state</key>
+                    <delay>0</delay>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>status</units>
+                    <description>Napęd w stanie awarii (Bit 3 słowa stanu napędu 3240 - FLT). 1=Awaria, 0=Brak awarii.</description>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>return (value &amp; (1 &lt;&lt; 3)) ? 1 : 0;</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>modbus.get[{HOST.HOST},0,3,3240,1,uint16]</key>
+                    </master_item>
+                    <triggers>
+                        <trigger>
+                            <uuid>c3fa4621934b4c879805ebe649fdfaf4</uuid>
+                            <expression>last(/Modbus monitoring_mp/drive.fault.state)=1</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_mp/drive.fault.state)=0</recovery_expression>
+                            <name>{HOST.NAME} - DRIVE IS IN FAULT STATE!</name>
+                            <priority>DISASTER</priority>
+                            <description>Ten trigger wyzwala się, jeśli napęd znajduje się w stanie awarii (FLT bit stanu napędu jest 1).</description>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>1a464f370a354a7a808c2cd4ea93b805</uuid>
+                    <name>Drive Ready to Switch On Status</name>
+                    <type>DEPENDENT</type>
+                    <key>drive.ready.status</key>
+                    <delay>0</delay>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>status</units>
+                    <description>Status gotowości napędu do włączenia (Bit 0 słowa stanu napędu 3240 - RDY). 1=Gotowy, 0=Niegotowy.</description>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>return (value &amp; (1 &lt;&lt; 0)) ? 1 : 0;</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>modbus.get[{HOST.HOST},0,3,3240,1,uint16]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <uuid>a0537eafca6e4f819682a7d78639778d</uuid>
+                    <name>Motor Output Frequency</name>
+                    <key>modbus.get[{HOST.HOST},0,3,3202,1,int16]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>Hz</units>
+                    <description>Rzeczywista częstotliwość wyjściowa silnika. Adres logiczny: 3202 (UINT). Jednostka w PLC: 0.1 Hz.Rzeczywista częstotliwość wyjściowa silnika. Adres logiczny: 3202 (UINT). Jednostka w PLC: 0.1 Hz.</description>
+                    <preprocessing>
+                        <step>
+                            <type>MULTIPLIER</type>
+                            <parameters>
+                                <parameter>0.1</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </item>
+                <item>
+                    <uuid>b6c0d38877a24eb8b51c949af5672085</uuid>
+                    <name>Motor Output Current</name>
+                    <key>modbus.get[{HOST.HOST},0,3,3204,1,uint16]</key>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>A</units>
+                    <description>Rzeczywisty prąd wyjściowy silnika. Adres logiczny: 3204 (UINT). Skalowanie może być wymagane w zależności od znamionowej wartości urządzenia (sprawdź w instrukcji).</description>
+                    <preprocessing>
+                        <step>
+                            <type>MULTIPLIER</type>
+                            <parameters>
+                                <parameter>0.001</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <triggers>
+                        <trigger>
+                            <uuid>5f964ff50a7747debb1297466bad42d5</uuid>
+                            <expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3204,1,uint16])&gt;25.0</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3204,1,uint16])&lt;20.0</recovery_expression>
+                            <name>{HOST.NAME} - High Motor Output Current  ({ITEM.LASTVALUE} A)</name>
+                            <priority>AVERAGE</priority>
+                            <description>Prąd wyjściowy silnika przekracza próg ostrzegawczy. Dostosuj próg na podstawie prądu znamionowego.</description>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>846e200c88974e2fb227e1e1c3dc9caa</uuid>
+                    <name>Motor Thermal State</name>
+                    <key>modbus.get[{HOST.HOST},0,3,3208,1,uint16]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>%</units>
+                    <description>Stan termiczny silnika. Adres logiczny: 3208 (UINT). Jednostka: % nominalnego obciążenia termicznego.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>5d48879d732f43019d11bd95edd7afc6</uuid>
+                            <expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3208,1,uint16])&gt;80</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3208,1,uint16])&lt;75</recovery_expression>
+                            <name>{HOST.NAME} - High Motor Thermal State ({ITEM.LASTVALUE}%)</name>
+                            <priority>WARNING</priority>
+                            <description>Stan termiczny silnika przekracza 80% nominalnego obciążenia.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>c37cccd6870346e881b4224991f9ad12</uuid>
+                    <name>Motor Output Voltage</name>
+                    <key>modbus.get[{HOST.HOST},0,3,3209,1,uint16]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>V</units>
+                    <description>Rzeczywiste napięcie wyjściowe silnika. Adres logiczny: 3209 (UINT). Jednostka: 1V.</description>
+                </item>
+                <item>
+                    <uuid>07bfe708930241708570eaa311a0ff9d</uuid>
+                    <name>Drive State Raw Word</name>
+                    <key>modbus.get[{HOST.HOST},0,3,3240,1,uint16]</key>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <description>Surowa wartość rejestru stanu napędu (WORD BitString16). Użyj elementów zależnych do wyodrębnienia poszczególnych bitów, takich jak Stan pracy, Stan awarii, Gotowość.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>59d0a3102cd6463ba8f834cab789af6d</uuid>
+                            <expression>change(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3240,1,uint16])&lt;&gt;0</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>change(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3240,1,uint16])=0</recovery_expression>
+                            <name>{HOST.NAME} - Nieoczekiwana zmiana surowego słowa statusu napędu</name>
+                            <priority>HIGH</priority>
+                            <description>Ten trigger wyzwala się, jeśli surowe słowo statusu napędu zmieniło swoją wartość, co może wskazywać na nieoczekiwany restart urządzenia lub inną znaczącą zmianę stanu.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>55fd62285d4f4dee8fbe2e3355a212ee</uuid>
+                    <name>Motor Run Time</name>
+                    <key>modbus.get[{HOST.HOST},0,3,3244,2,uint32]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>h</units>
+                    <description>Czas pracy silnika w godzinach. Adres logiczny: 3244 (UDINT).</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>c9a8a77890f542c4804910e738944ea1</uuid>
+                            <expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3244,2,uint32])=last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3244,2,uint32],#2)</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3244,2,uint32])&lt;&gt;last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3244,2,uint32],#2)</recovery_expression>
+                            <name>{HOST.NAME} - Motor Run Time Not Increasing</name>
+                            <priority>WARNING</priority>
+                            <description>Wartość czasu pracy silnika nie zmieniła się w dwóch ostatnich próbkach, co może wskazywać na problem z licznikiem lub komunikacją.</description>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>18a131acd5e24c249c968f5af79794fb</uuid>
+                    <name>Total Energy Consumption</name>
+                    <key>modbus.get[{HOST.HOST},0,3,3250,2,uint32]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>kWh</units>
+                    <description>Całkowity licznik zużycia energii. Adres logiczny: 3250 (UDINT).</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>0a9b9b5fd28c4eac9e3d911154880cb2</uuid>
+                            <expression>min(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3250,2,uint32],1h)=max(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3250,2,uint32],1h)</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>min(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3250,2,uint32],1h)&lt;&gt;max(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,3250,2,uint32],1h)</recovery_expression>
+                            <name>{HOST.NAME} - Total Energy Consumption Stalled</name>
+                            <priority>INFO</priority>
+                            <description>Całkowite zużycie energii nie zmieniło się w ciągu ostatniej godziny, co może wskazywać na brak pracy lub problem z licznikiem.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>aebb78ba60434ac4b8aaea6a0a30d6b6</uuid>
+                    <name>Analog Input 1 Raw Value</name>
+                    <key>modbus.get[{HOST.HOST},0,3,3260,1,uint16]</key>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <description>Surowa wartość z wejścia analogowego 1. Adres logiczny: 3260 (UINT). Wymaga skalowania, jeśli ma reprezentować wartość fizyczną.</description>
+                </item>
+                <item>
+                    <uuid>55c384fe1801496f860f61b18bbdc038</uuid>
+                    <name>Product Code</name>
+                    <key>modbus.get[{HOST.HOST},0,3,7200,8,uint16]</key>
+                    <delay>1h</delay>
+                    <history>30d</history>
+                    <value_type>TEXT</value_type>
+                    <trends>0</trends>
+                    <description>Kod produktu napędu. Adres logiczny: 7200 (Text). 8 rejestrów. Wymaga preprocesingu JavaScript do konwersji.</description>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>var str = &quot;&quot;;
+for (var i = 0; i &lt; value.length; i++) {
+    var char1 = (value[i] &gt;&gt; 8) &amp; 0xFF;
+    var char2 = value[i] &amp; 0xFF;
+    if (char1 &gt; 0) str += String.fromCharCode(char1);
+    if (char2 &gt; 0) str += String.fromCharCode(char2);
+}
+return str.trim();</parameter>
+                            </parameters>
+                        </step>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <parameters>
+                                <parameter>12h</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </item>
+                <item>
+                    <uuid>9eb4cc160cb242549065fb616f591a9c</uuid>
+                    <name>Serial Number</name>
+                    <key>modbus.get[{HOST.HOST},0,3,7224,8,uint16]</key>
+                    <delay>1h</delay>
+                    <history>30d</history>
+                    <value_type>TEXT</value_type>
+                    <trends>0</trends>
+                    <description>Numer seryjny napędu. Adres logiczny: 7224 (Text). 8 rejestrów. Wymaga preprocesingu JavaScript do konwersji.</description>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>var str = &quot;&quot;;
+for (var i = 0; i &lt; value.length; i++) {
+    var char1 = (value[i] &gt;&gt; 8) &amp; 0xFF;
+    var char2 = value[i] &amp; 0xFF;
+    if (char1 &gt; 0) str += String.fromCharCode(char1);
+    if (char2 &gt; 0) str += String.fromCharCode(char2);
+}
+return str.trim();</parameter>
+                            </parameters>
+                        </step>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <parameters>
+                                <parameter>12h</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </item>
+                <item>
+                    <uuid>709d7dff1e6a4bb7ab53cb5242de315b</uuid>
+                    <name>Drive Name</name>
+                    <key>modbus.get[{HOST.HOST},0,3,7232,16,uint16]</key>
+                    <delay>1h</delay>
+                    <value_type>TEXT</value_type>
+                    <trends>0</trends>
+                    <description>Nazwa napędu (ustawiana przez użytkownika). Adres logiczny: 7232 (Text). 16 rejestrów. Wymaga preprocesingu JavaScript do konwersji.</description>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>var str = &quot;&quot;;
+for (var i = 0; i &lt; value.length; i++) {
+    var char1 = (value[i] &gt;&gt; 8) &amp; 0xFF;
+    var char2 = value[i] &amp; 0xFF;
+    if (char1 &gt; 0) str += String.fromCharCode(char1);
+    if (char2 &gt; 0) str += String.fromCharCode(char2);
+}
+return str.trim();</parameter>
+                            </parameters>
+                        </step>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <parameters>
+                                <parameter>12h</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </item>
+                <item>
+                    <uuid>8ad31a8bf6a74e7d93c974b654992750</uuid>
+                    <name>DC Bus Voltage</name>
+                    <key>modbus.get[{HOST.HOST},0,3,7270,1,uint16]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>V</units>
+                    <description>Rzeczywiste napięcie szyny DC. Adres logiczny: 7270 (UINT). Jednostka: 1V.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>68db91cfeabd427795ebc92685315017</uuid>
+                            <expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,7270,1,uint16])&gt;700</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,7270,1,uint16])&lt;680</recovery_expression>
+                            <name>{HOST.NAME} - High DC Bus Voltage ({ITEM.LASTVALUE} V)</name>
+                            <priority>HIGH</priority>
+                            <description>Napięcie na szynie DC przekroczyło bezpieczny poziom.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                        <trigger>
+                            <uuid>39694adf22844b37b46be1597aae34c6</uuid>
+                            <expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,7270,1,uint16])&lt;500</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,7270,1,uint16])&gt;520</recovery_expression>
+                            <name>{HOST.NAME} - Low DC Bus Voltage ({ITEM.LASTVALUE} V)</name>
+                            <priority>HIGH</priority>
+                            <description>Napięcie na szynie DC spadło poniżej krytycznego poziomu.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>aa0facefdced4df48cabf23818ad1500</uuid>
+                    <name>IGBT Junction Temperature</name>
+                    <key>modbus.get[{HOST.HOST},0,3,7350,1,uint16]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>°C</units>
+                    <description>Temperatura złącza IGBT. Adres logiczny: 7350 (UINT). Jednostka: 1°C.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>f58b1538f3764bcaa2f7ae4c109e61d1</uuid>
+                            <expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,7350,1,uint16])&gt;85</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,7350,1,uint16])&lt;80</recovery_expression>
+                            <name>{HOST.NAME} - High IGBT Junction Temperature ({ITEM.LASTVALUE}°C)</name>
+                            <priority>WARNING</priority>
+                            <description>Temperatura złącza IGBT przekracza 85°C. Dostosuj próg do specyfikacji producenta.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>b857fb64a8a94cf49b48a160dbda6f7b</uuid>
+                    <name>Modbus availability</name>
+                    <key>modbus.get[{HOST.HOST},0,3,8000,1,uint16]</key>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <description>Sprawdza dostępność sterownika Modbus (przetwornicy ATV6xx) poprzez odczyt wersji firmware'u. Brak danych z tego elementu będzie wskazywał na problem z komunikacją Modbus TCP.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>db68d9388dad4577bc53c59b5e99df63</uuid>
+                            <expression>nodata(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,8000,1,uint16],5m)=1</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>nodata(/Modbus monitoring_mp/modbus.get[{HOST.HOST},0,3,8000,1,uint16],5m)=0</recovery_expression>
+                            <name>{HOST.NAME} - Sterownik Modbus Niedostępny</name>
+                            <description>Ten trigger wyzwala się, jeśli Zabbix nie otrzymuje danych z elementu sprawdzającego dostępność sterownika Modbus (przetwornicy ATV6xx) poprzez odczyt wersji firmware'u przez 5 minut. Może to wskazywać na problem z komunikacją sieciową, wyłączenie urządzenia Modbus lub jego zawieszenie.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>0a186a4bd3554cb39c3c215b83ae3e5b</uuid>
+                    <name>Motor Running Status</name>
+                    <type>DEPENDENT</type>
+                    <key>motor.running.status</key>
+                    <delay>0</delay>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>status</units>
+                    <description>Status pracy silnika (Bit 2 słowa stanu napędu 3240 - RUN). 1=Silnik pracuje, 0=Silnik zatrzymany.</description>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>return (value &amp; (1 &lt;&lt; 2)) ? 1 : 0;</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>modbus.get[{HOST.HOST},0,3,3240,1,uint16]</key>
+                    </master_item>
+                    <triggers>
+                        <trigger>
+                            <uuid>122f019eefc947c88ff65561c6dc3a8f</uuid>
+                            <expression>last(/Modbus monitoring_mp/motor.running.status)=0</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_mp/motor.running.status)=1</recovery_expression>
+                            <name>{HOST.NAME} - Motor is unexpectedly OFF!</name>
+                            <priority>HIGH</priority>
+                            <description>Ten trigger wyzwala się, jeśli silnik nie pracuje (RUN bit stanu napędu jest 0).</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+            <tags>
+                <tag>
+                    <tag>class</tag>
+                    <value>pcl</value>
+                </tag>
+            </tags>
+        </template>
+    </templates>
+    <graphs>
+        <graph>
+            <uuid>55e9e829c72348dfba79a3198b124134</uuid>
+            <name>Czas Pracy i Zużycie Energii</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,3244,2,uint32]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,3250,2,uint32]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>600e36f5ddc04651b6155d1e688aad8f</uuid>
+            <name>Kluczowe Parametry Pracy Silnika</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,3204,1,uint16]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,3202,1,int16]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>2774A4</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,3209,1,uint16]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>ea019ca2663d4054900aaf4c0f9384a7</uuid>
+            <name>Kluczowe Statusy Binarne Napędu</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>drive.fault.state</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>drive.ready.status</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>2774A4</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>motor.running.status</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>c341d9d9fce9411988dc32267c77f92e</uuid>
+            <name>Modbus Availability</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,8000,1,uint16]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>dec53dc33acd47fd99c0b244c78bac07</uuid>
+            <name>Napięcia Magistrali DC</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,7270,1,uint16]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>4a8d86df6db841119e74d69df8f50e8a</uuid>
+            <name>Temperatura i Stan Termiczny Napędu</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,7350,1,uint16]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_mp</host>
+                        <key>modbus.get[{HOST.HOST},0,3,3208,1,uint16]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+    </graphs>
+</zabbix_export>

@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>7.0</version>
+    <template_groups>
+        <template_group>
+            <uuid>7df96b18c230490a9a0a9e2307226338</uuid>
+            <name>Templates</name>
+        </template_group>
+    </template_groups>
+    <templates>
+        <template>
+            <uuid>bc758b3bff434fbba7a5f238cf92545a</uuid>
+            <template>Modbus monitoring_an</template>
+            <name>Modbus monitoring_an</name>
+            <description>anx-xxx</description>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <items>
+                <item>
+                    <uuid>4bb0705c600b4d3ebd96563373cc1295</uuid>
+                    <name>Input 0.0 Status</name>
+                    <type>DEPENDENT</type>
+                    <key>digital.input.0_0.status</key>
+                    <delay>0</delay>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>status</units>
+                    <description>Status wejścia cyfrowego 0.0 (Bit 0 w Byte3 słowa stanu wyjść cyfrowych). 1=Aktywny, 0=Nieaktywny. Wymaga preprocesingu JavaScript.</description>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>return (value &amp; (1 &lt;&lt; 24)) ? 1 : 0;</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>modbus.get[{HOST.HOST},1,3,209,1,uint32]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <uuid>8d333d45b62147e88e7af59c6d9b5163</uuid>
+                    <name>Output 0.0 Status</name>
+                    <type>DEPENDENT</type>
+                    <key>digital.output.0_0.status</key>
+                    <delay>0</delay>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>status</units>
+                    <description>Status wyjścia cyfrowego 0.0 (Bit 0 w Byte3 słowa stanu wyjść cyfrowych). 1=Aktywny, 0=Nieaktywny. Wymaga preprocesingu JavaScript.</description>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>return (value &amp; (1 &lt;&lt; 24)) ? 1 : 0;</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>modbus.get[{HOST.HOST},1,3,207,1,uint32]</key>
+                    </master_item>
+                    <triggers>
+                        <trigger>
+                            <uuid>96ba17ade5bc4686a930097bb0ce15e9</uuid>
+                            <expression>last(/Modbus monitoring_an/digital.output.0_0.status)=1</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_an/digital.output.0_0.status)=0</recovery_expression>
+                            <name>{HOST.NAME} - Digital Output 0.0 Activated</name>
+                            <priority>INFO</priority>
+                            <description>Ten trigger wyzwala się, jeśli wyjście cyfrowe 0.0 zostało aktywowane. Może to być informacja o stanie pracy lub sterowania.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>362221bcf5f8456fad04c9dc049cae31</uuid>
+                    <name>Voltage L1-N</name>
+                    <key>modbus.get[{HOST.HOST},1,3,1,1,float]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>V</units>
+                    <description>Napięcie między fazą L1 a neutralnym. Adres: 1. Format: Float. Jednostka: V.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>97e275d5ee174e6d8e7d1c9329912d21</uuid>
+                            <expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,1,1,float])&lt;100</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,1,1,float])&gt;110</recovery_expression>
+                            <name>{HOST.NAME} - Low Voltage L1-N ({ITEM.LASTVALUE} V)</name>
+                            <priority>DISASTER</priority>
+                            <description>Ten trigger wyzwala się, jeśli napięcie fazy L1-N spadło poniżej krytycznego progu (np. 100V). Może to wskazywać na problem z zasilaniem lub obciążeniem.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                        <trigger>
+                            <uuid>d34c937baf18480ab5a53c3d162dabdb</uuid>
+                            <expression>nodata(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,1,1,float],5m)=1</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>nodata(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,1,1,float],5m)=0</recovery_expression>
+                            <name>{HOST.NAME} - Sterownik Modbus Niedostępny</name>
+                            <priority>HIGH</priority>
+                            <description>trigger wyzwala się, jeśli Zabbix nie otrzymuje danych z elementu sprawdzającego dostępność sterownika Modbus przez 5 minut. Może to wskazywać na problem z komunikacją sieciową, wyłączenie urządzenia Modbus lub jego zawieszenie.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>9fbebb1e2a584148b3d58030750849dc</uuid>
+                    <name>Current L1</name>
+                    <key>modbus.get[{HOST.HOST},1,3,13,1,float]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>A</units>
+                    <description>Rzeczywisty prąd fazy L1. Adres: 13. Format: Float. Jednostka: A.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>b7fb3cfc34b64b6dbd7e0bb6954ae885</uuid>
+                            <expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,13,1,float])&gt;50</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,13,1,float])&lt;45</recovery_expression>
+                            <name>{HOST.NAME} - Wysoki Prąd L1 ({ITEM.LASTVALUE} A)</name>
+                            <priority>AVERAGE</priority>
+                            <description>Ten trigger wyzwala się, jeśli prąd na fazie L1 przekroczył bezpieczny poziom. Może to wskazywać na przeciążenie lub awarię odbiornika.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>384aa0898ce24d9d8ed7cc86747e7b14</uuid>
+                    <name>THD-R Voltage L1</name>
+                    <key>modbus.get[{HOST.HOST},1,3,43,1,float]</key>
+                    <delay>5m</delay>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>%</units>
+                    <description>Całkowite zniekształcenie harmoniczne napięcia L1 (THD-R). Adres: 43. Format: Float. Jednostka: %</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>482b9240cb384f09ba928c792ef4211b</uuid>
+                            <expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,43,1,float])&gt;5</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,43,1,float])&lt;4</recovery_expression>
+                            <name>{HOST.NAME} - Wysokie THD-R Napięcie L1 ({ITEM.LASTVALUE}%)</name>
+                            <priority>WARNING</priority>
+                            <description>Ten trigger wyzwala się, jeśli poziom całkowitych zniekształceń harmonicznych napięcia L1 przekracza 5%. Wysokie THD może negatywnie wpływać na inne urządzenia w sieci.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>ea41234361af447192b0759b78529c4e</uuid>
+                    <name>THD-R Current L1</name>
+                    <key>modbus.get[{HOST.HOST},1,3,49,1,float]</key>
+                    <delay>5m</delay>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>%</units>
+                    <description>Całkowite zniekształcenie harmoniczne prądu L1 (THD-R). Adres: 49. Format: Float. Jednostka: %</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>2d665f80bcab403f962a134a41f46f53</uuid>
+                            <expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,49,1,float])&gt;10</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,49,1,float])&lt;8</recovery_expression>
+                            <name>{HOST.NAME} - Wysokie THD-R Prąd L1 ({ITEM.LASTVALUE}%)</name>
+                            <priority>AVERAGE</priority>
+                            <description>Ten trigger wyzwala się, jeśli poziom całkowitych zniekształceń harmonicznych prądu L1 przekracza 10%. Wysokie THD prądu może prowadzić do przegrzewania przewodów i urządzeń.</description>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>13c45722c5fc42feb03e9330c1431d54</uuid>
+                    <name>Frequency</name>
+                    <key>modbus.get[{HOST.HOST},1,3,55,1,float]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>Hz</units>
+                    <description>Częstotliwość sieci zasilającej. Adres: 55. Format: Float. Jednostka: Hz.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>f2229c8262ae417299880017af8ec0a2</uuid>
+                            <expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,55,1,float])&lt;48</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,55,1,float])&gt;=48</recovery_expression>
+                            <name>{HOST.NAME} - Częstotliwość Zbyt Niska ({ITEM.LASTVALUE} Hz)</name>
+                            <priority>HIGH</priority>
+                            <description>Częstotliwość sieci zasilającej spadła poniżej minimalnego zakresu 48 Hz.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                        <trigger>
+                            <uuid>5091e9fe63684971972e633b2c38907f</uuid>
+                            <expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,55,1,float])&gt;52</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,55,1,float])&lt;=52</recovery_expression>
+                            <name>{HOST.NAME} - Częstotliwość Zbyt Wysoka ({ITEM.LASTVALUE} Hz)</name>
+                            <priority>HIGH</priority>
+                            <description>Częstotliwość sieci zasilającej wzrosła powyżej maksymalnego zakresu 52 Hz.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>63e031893aa747eab134f38ca3f0c46c</uuid>
+                    <name>Total Apparent Power</name>
+                    <key>modbus.get[{HOST.HOST},1,3,63,1,float]</key>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>VA</units>
+                    <description>Całkowita moc pozorna dla wszystkich faz. Adres: 63. Format: Float. Jednostka: VA.</description>
+                </item>
+                <item>
+                    <uuid>88eb10b520fb400787dfa5ee0915758d</uuid>
+                    <name>Total Active Power</name>
+                    <key>modbus.get[{HOST.HOST},1,3,65,1,float]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>W</units>
+                    <description>Całkowita moc czynna dla wszystkich faz. Adres: 65. Format: Float. Jednostka: W.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>8aa76e0993e84d2f9035502b5f447193</uuid>
+                            <expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,65,1,float])&gt;10000</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,65,1,float])&lt;9000</recovery_expression>
+                            <name>{HOST.NAME} - Wysoka Całkowita Moc Czynna ({ITEM.LASTVALUE} W)</name>
+                            <priority>AVERAGE</priority>
+                            <description>Ten trigger wyzwala się, jeśli całkowita moc czynna przekroczyła zdefiniowany próg. Może to wskazywać na zwiększone zużycie energii lub nieoczekiwane obciążenie.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>96d76cbbaf1e421882242e3e7577deca</uuid>
+                    <name>Total Power Factor</name>
+                    <key>modbus.get[{HOST.HOST},1,3,69,1,float]</key>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <description>Całkowity współczynnik mocy dla wszystkich faz. Adres: 69. Format: Float. Zakres: 0-1.</description>
+                </item>
+                <item>
+                    <uuid>3f05ed4a4d00452685f06535b31e538c</uuid>
+                    <name>Maximum Voltage L1-N</name>
+                    <key>modbus.get[{HOST.HOST},1,3,75,1,float]</key>
+                    <delay>1h</delay>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>V</units>
+                    <description>Maksymalna zarejestrowana wartość napięcia W CIĄGU OSTATNIEJ GODZINY L1-N. Adres: 75. Format: Float. Jednostka: V.</description>
+                </item>
+                <item>
+                    <uuid>30b55a1d864f4e878392b778b7c68737</uuid>
+                    <name>Maximum Current L1</name>
+                    <key>modbus.get[{HOST.HOST},1,3,87,1,float]</key>
+                    <delay>1h</delay>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>A</units>
+                    <description>Maksymalna zarejestrowana wartość W CIĄGU OSTATNIEJ GODZINY prądu L1. Adres: 87. Format: Float. Jednostka: A.</description>
+                </item>
+                <item>
+                    <uuid>6169c212166e4164b750d47e63e4c8d7</uuid>
+                    <name>Digital Outputs Status</name>
+                    <key>modbus.get[{HOST.HOST},1,3,207,1,uint32]</key>
+                    <description>Surowe słowo statusu wyjść cyfrowych. Adres: 207. Format: Unsigned long. Użyj elementów zależnych do wyodrębnienia bitów.</description>
+                </item>
+                <item>
+                    <uuid>3648fe5a01534690b2f839bd21a71e35</uuid>
+                    <name>Digital Inputs Status</name>
+                    <key>modbus.get[{HOST.HOST},1,3,209,1,uint32]</key>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <description>Surowe słowo statusu wejść cyfrowych. Adres: 209. Format: Unsigned long. Użyj elementów zależnych do wyodrębnienia bitów.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>a7ec76e93d6245d2ab76e5b270a26986</uuid>
+                            <expression>change(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,209,1,uint32])&lt;&gt;0</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>change(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,209,1,uint32])=0</recovery_expression>
+                            <name>{HOST.NAME} - Digital Input Status Changed</name>
+                            <priority>INFO</priority>
+                            <description>Ten trigger wyzwala się, jeśli surowe słowo statusu wejść cyfrowych zmieniło swoją wartość. Wskazuje to na zmianę stanu co najmniej jednego wejścia.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>714a938a8b514178bff9206fb60f629b</uuid>
+                    <name>Operating Hours Counter</name>
+                    <key>modbus.get[{HOST.HOST},1,3,213,1,uint32]</key>
+                    <delay>1h</delay>
+                    <history>7d</history>
+                    <trends>30d</trends>
+                    <units>s</units>
+                    <description>Licznik godzin pracy urządzenia w sekundach. Adres: 213. Format: Unsigned long. Jednostka: s. Dostęp R/W.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>aa74faa14c794ee8b16c278154abfc12</uuid>
+                            <expression>change(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,213,1,uint32])=0</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>change(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,213,1,uint32])&lt;&gt;0</recovery_expression>
+                            <name>{HOST.NAME} - Licznik Godzin Pracy Zablokowany</name>
+                            <priority>INFO</priority>
+                            <description>Ten trigger wyzwala się, jeśli licznik godzin pracy urządzenia nie zmienia swojej wartości w kolejnych pomiarach, co może wskazywać na problem z urządzeniem lub komunikacją.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>c6446a5903fb4ec2b042c00045d4638c</uuid>
+                    <name>Total Active Energy Import Tariff 1</name>
+                    <key>modbus.get[{HOST.HOST},1,3,801,1,double]</key>
+                    <delay>5m</delay>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>Wh</units>
+                    <description>Całkowita energia czynna importowana dla taryfy 1. Adres: 801. Format: Double. Jednostka: Wh.</description>
+                    <triggers>
+                        <trigger>
+                            <uuid>4c9ed19ba3044f5da06ef91e6ad47181</uuid>
+                            <expression>min(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,801,1,double],1h)=max(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,801,1,double],1h)</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>min(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,801,1,double],1h)&lt;&gt;max(/Modbus monitoring_an/modbus.get[{HOST.HOST},1,3,801,1,double],1h)</recovery_expression>
+                            <name>{HOST.NAME} - Total Energy Import Stalled</name>
+                            <priority>INFO</priority>
+                            <description>Ten trigger wyzwala się, jeśli całkowita aktywna energia importowa dla taryfy 1 nie zmieniła się w ciągu ostatniej godziny, co może wskazywać na brak zużycia energii lub problem z licznikiem.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>5ea5398207e44c889ffc0cd0702df8a6</uuid>
+                    <name>Total Reactive Energy Import Tariff 1</name>
+                    <key>modbus.get[{HOST.HOST},1,3,817,1,double]</key>
+                    <delay>5m</delay>
+                    <history>7d</history>
+                    <value_type>FLOAT</value_type>
+                    <trends>30d</trends>
+                    <units>varh</units>
+                    <description>Całkowita energia bierna importowana dla taryfy 1. Adres: 817. Format: Double. Jednostka: varh.</description>
+                </item>
+            </items>
+            <tags>
+                <tag>
+                    <tag>class</tag>
+                    <value>pcl</value>
+                </tag>
+            </tags>
+        </template>
+    </templates>
+    <graphs>
+        <graph>
+            <uuid>e77379a4945f42d38fa3034c4db5fb32</uuid>
+            <name>Jakość Energii (THD-R)</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,49,1,float]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,43,1,float]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>06ba011930b34ed1a1c77cde7bd1719b</uuid>
+            <name>Kluczowe Napięcia Fazowe</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,1,1,float]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>d7df550290fb4e3db65a77cca6fe9354</uuid>
+            <name>Kluczowe Prądy Fazowe</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,13,1,float]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>e88872c9748740938da58ec3ef3cf051</uuid>
+            <name>Liczniki Energii i Godzin Pracy</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,213,1,uint32]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,801,1,double]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>2774A4</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,817,1,double]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>d3820e171e6a40c2b0651eb86eabb6ea</uuid>
+            <name>Moce i Całkowity Współczynnik Mocy</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,65,1,float]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,63,1,float]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>2774A4</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,69,1,float]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>dd6ad578dcdb4d4ebfe579365a53a8fc</uuid>
+            <name>Modbus Availability</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Modbus monitoring_an</host>
+                        <key>modbus.get[{HOST.HOST},1,3,1,1,float]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+    </graphs>
+</zabbix_export>
